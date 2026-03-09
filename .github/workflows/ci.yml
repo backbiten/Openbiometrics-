@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "copilot/**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  # ─── Linux build ─────────────────────────────────────────────────────────────
+  build-linux:
+    name: Build on Ubuntu (stub mode)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CMake
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y cmake build-essential
+
+      - name: Configure (without OpenCV — stub mode)
+        run: |
+          cmake -B build \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DOBX_WITH_OPENCV=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Smoke test — help
+        run: ./build/obx --help
+
+      - name: Smoke test — consent gate
+        run: |
+          ./build/obx record --video --out /tmp/out --duration 1 \
+            && echo "ERROR: should have failed" && exit 1 \
+            || echo "Correctly rejected missing consent"
+
+      - name: Smoke test — record stub (5 s)
+        run: |
+          ./build/obx record \
+            --consent yes \
+            --video \
+            --out /tmp/out \
+            --duration 1
+          ls /tmp/out/session_*/metadata.json
+          cat /tmp/out/session_*/metadata.json
+
+  # ─── Linux build WITH OpenCV ─────────────────────────────────────────────────
+  build-linux-opencv:
+    name: Build on Ubuntu (with OpenCV)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y cmake build-essential libopencv-dev
+
+      - name: Configure
+        run: |
+          cmake -B build \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DOBX_WITH_OPENCV=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Smoke test — help
+        run: ./build/obx --help
+
+  # ─── Windows build ────────────────────────────────────────────────────────────
+  build-windows:
+    name: Build on Windows (stub mode)
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure (without OpenCV — stub mode)
+        run: |
+          cmake -B build `
+                -DCMAKE_BUILD_TYPE=Release `
+                -DOBX_WITH_OPENCV=OFF
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Smoke test — help
+        run: .\build\Release\obx.exe --help
+
+      - name: Smoke test — consent gate
+        shell: pwsh
+        run: |
+          $result = & .\build\Release\obx.exe record --video --out out --duration 1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Error "ERROR: should have failed without consent"
+            exit 1
+          }
+          Write-Host "Correctly rejected missing consent"
+
+      - name: Smoke test — record stub (1 s)
+        run: |
+          .\build\Release\obx.exe record `
+            --consent yes `
+            --video `
+            --out out `
+            --duration 1
+          Get-ChildItem out\session_*\metadata.json | ForEach-Object { Get-Content $_ }
