@@ -1,0 +1,30 @@
+# Build directories
+build/
+_build/
+out/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+# But keep intentional cmake/ module files
+!cmake/*.cmake
+
+# Compiled outputs
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# IDE/editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
