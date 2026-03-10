@@ -1,0 +1,12 @@
+[flake8]
+max-line-length = 100
+# Ignore module-level import ordering in tests (sys.path manipulation required)
+# and unused stdlib imports in existing code that are preserved intentionally.
+per-file-ignores =
+    tests/*.py: E402, F401
+    openbiometrics.py: F401
+exclude =
+    .git,
+    __pycache__,
+    .pytest_cache,
+    dist,
