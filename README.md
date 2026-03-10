@@ -95,3 +95,33 @@ python -m pytest tests/
 
 All tests use Python's standard library only — no external test dependencies
 beyond `pytest`.
+
+---
+
+## QA/QC gate
+
+A local QA script runs lint, tests, and an integrity check in one command:
+
+```bash
+pip install pytest flake8
+python tools/qa/qa.py
+```
+
+The same script runs in CI on every push and pull request.  
+See **[docs/QA.md](docs/QA.md)** for full details, including how to set it as
+a required status check.
+
+---
+
+## Seat of Life — source snapshots
+
+To create a self-contained, verifiable archive of the source tree:
+
+```bash
+python tools/seat_of_life/snapshot.py --output-dir dist --tag v1.0.0
+```
+
+Release snapshots and manifests are uploaded automatically as GitHub Release
+artifacts via the release workflow.  
+See **[docs/SeatOfLife.md](docs/SeatOfLife.md)** for generation, verification,
+and restoration instructions.

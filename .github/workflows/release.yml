@@ -1,0 +1,59 @@
+name: Release — Seat of Life Snapshot
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag label for the snapshot archive"
+        required: false
+        default: "snapshot"
+
+jobs:
+  snapshot:
+    name: Build & upload source snapshot
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Determine snapshot tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "label=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "label=${{ github.event.inputs.tag || 'snapshot' }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build snapshot + manifest
+        run: |
+          python tools/seat_of_life/snapshot.py \
+            --output-dir dist \
+            --tag "${{ steps.tag.outputs.label }}"
+
+      - name: Upload snapshot archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: openbiometrics-snapshot-${{ steps.tag.outputs.label }}
+          path: |
+            dist/openbiometrics-*.tar.gz
+            dist/manifest.json
+          if-no-files-found: error
+
+      - name: Attach artifacts to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/openbiometrics-*.tar.gz
+            dist/manifest.json
