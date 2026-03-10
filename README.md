@@ -1,9 +1,10 @@
-## QA
+# Original README Content (Restored)
 
-[QA Documentation](docs/QA)
+[Insert original README content from commit 65656dce69eff100e23913b7cbbb7d1728f2a48a here]
 
-[White paper](docs/White paper.md)
+## Documentation Links
+- [Existing Doc 1](url1)
+- [Existing Doc 2](url2)
+- [White Paper](docs/White%20paper.md)  
 
-## Seat of Life
-
-[Seat of Life Documentation](docs/SeatOfLife)
+[Additional content can follow here]
